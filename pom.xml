@@ -2,8 +2,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>hcsp</groupId>
-    <artifactId>read-write-files</artifactId>
+    <groupId>pro.0621</groupId>
+    <artifactId>java-crawler</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -22,14 +22,14 @@
                 <pluginRepository>
                     <id>alimaven</id>
                     <name>aliyun maven</name>
-                    <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+                    <url>https://maven.aliyun.com/repository/public/</url>
                 </pluginRepository>
             </pluginRepositories>
             <repositories>
                 <repository>
                     <id>alimaven</id>
                     <name>aliyun maven</name>
-                    <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+                    <url>https://maven.aliyun.com/repository/public/</url>
                 </repository>
             </repositories>
         </profile>
