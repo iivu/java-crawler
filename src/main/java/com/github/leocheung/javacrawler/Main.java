@@ -11,6 +11,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.io.IOException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,34 +20,43 @@ import java.util.Set;
 public class Main {
     private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0";
     private static final String HOME_PAGE_LINK = "https://sina.cn";
-    private static final List<String> linkPool = new ArrayList<>();
-    private static final Set<String> processedLinks = new HashSet<>();
+    private static final String JDBC_URL = "jdbc:h2:file:/Users/naliankeji/leo-space/hcsp/java-crawler/db/sina_news";
+    private static final String DATABASE_USER = "root";
+    private static final String DATABASE_PASSWORD = "root";
+    private static List<String> linkPool;
 
-    static {
-        linkPool.add(HOME_PAGE_LINK);
-    }
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SQLException {
+        Connection connection = DriverManager.getConnection(JDBC_URL, DATABASE_USER, DATABASE_PASSWORD);
+        linkPool = loadLinksFromDatabase(connection, "SELECT `link` FROM `links_to_be_processed`;");
+        if (linkPool.isEmpty()) {
+            linkPool.add(HOME_PAGE_LINK);
+        }
         while (!linkPool.isEmpty()) {
             String link = linkPool.remove(linkPool.size() - 1);
-            if (processedLinks.contains(link)) {
+            insertLinkIntoDatabase(connection, link, "DELETE FROM `links_to_be_processed` WHERE `link` = ?;");
+            if (isLinkProcessed(connection, link)) {
                 continue;
             }
             if (isInterestingLink(link)) {
                 Document doc = getAndParseHtml(link);
-                collectPageLink(doc);
-                storeArticle(doc);
-                processedLinks.add(link);
+                collectPageLink(connection, doc);
+                storeArticle(connection, doc);
+                insertLinkIntoDatabase(connection, link, "INSERT INTO `links_already_processed` (`link`) VALUES (?);");
             }
         }
     }
 
-    private static void collectPageLink(Document doc) {
+    private static void collectPageLink(Connection connection, Document doc) throws SQLException {
         List<Element> aTags = doc.select("a");
-        aTags.stream().map(aTag -> aTag.attr("href")).forEach(linkPool::add);
+        for (Element aTag : aTags) {
+            String href = aTag.attr("href");
+            linkPool.add(href);
+            // TODO: 使用事务批量提交
+            insertLinkIntoDatabase(connection, href, "INSERT INTO `links_to_be_processed` (`link`) VALUES (?);");
+        }
     }
 
-    private static void storeArticle(Document doc) {
+    private static void storeArticle(Connection connection, Document doc) {
         List<Element> articleTags = doc.select("article");
         if (!articleTags.isEmpty()) {
             articleTags.forEach(articleTag -> {
@@ -87,5 +97,31 @@ public class Main {
 
     private static boolean isNewsPage(String link) {
         return link.contains("news.sina.cn");
+    }
+
+    private static List<String> loadLinksFromDatabase(Connection connection, String sql) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            List<String> result = new ArrayList<>();
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                result.add(resultSet.getString(1));
+            }
+            return result;
+        }
+    }
+
+    private static void insertLinkIntoDatabase(Connection connection, String link, String sql) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, link);
+            statement.executeUpdate();
+        }
+    }
+
+    private static boolean isLinkProcessed(Connection connection, String link) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM `links_already_processed` WHERE `link` = ?;")) {
+            statement.setString(1, link);
+            ResultSet resultSet = statement.executeQuery();
+            return resultSet.next();
+        }
     }
 }

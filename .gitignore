@@ -29,3 +29,6 @@ replay_pid*
 
 # maven files
 target/
+
+# db
+db/
