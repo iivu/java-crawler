@@ -1,5 +1,6 @@
 package com.github.leocheung.javacrawler;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -13,9 +14,7 @@ import org.jsoup.nodes.Element;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class Main {
     private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0";
@@ -25,6 +24,7 @@ public class Main {
     private static final String DATABASE_PASSWORD = "root";
     private static List<String> linkPool;
 
+    @SuppressFBWarnings("DMI_CONSTANT_DB_PASSWORD")
     public static void main(String[] args) throws IOException, SQLException {
         Connection connection = DriverManager.getConnection(JDBC_URL, DATABASE_USER, DATABASE_PASSWORD);
         linkPool = loadLinksFromDatabase(connection, "SELECT `link` FROM `links_to_be_processed`;");
