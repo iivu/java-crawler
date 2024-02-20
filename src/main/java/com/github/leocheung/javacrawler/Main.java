@@ -10,8 +10,10 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 
 public class Main {
+    private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0";
     public static void main(String[] args) throws IOException {
         HttpGet httpGet = new HttpGet("https://sina.cn");
+        httpGet.addHeader("User-Agent",USER_AGENT);
         try (
                 CloseableHttpClient httpClient = HttpClients.createDefault();
                 CloseableHttpResponse httpResponse = httpClient.execute(httpGet)
