@@ -31,4 +31,4 @@ replay_pid*
 target/
 
 # db
-db/
+/db/
