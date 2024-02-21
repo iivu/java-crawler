@@ -13,8 +13,8 @@ import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
     private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0";
@@ -22,18 +22,12 @@ public class Main {
     private static final String JDBC_URL = "jdbc:h2:file:/Users/naliankeji/leo-space/hcsp/java-crawler/db/sina_news";
     private static final String DATABASE_USER = "root";
     private static final String DATABASE_PASSWORD = "root";
-    private static List<String> linkPool;
 
     @SuppressFBWarnings("DMI_CONSTANT_DB_PASSWORD")
     public static void main(String[] args) throws IOException, SQLException {
         Connection connection = DriverManager.getConnection(JDBC_URL, DATABASE_USER, DATABASE_PASSWORD);
-        linkPool = loadLinksFromDatabase(connection, "SELECT `link` FROM `links_to_be_processed`;");
-        if (linkPool.isEmpty()) {
-            linkPool.add(HOME_PAGE_LINK);
-        }
-        while (!linkPool.isEmpty()) {
-            String link = linkPool.remove(linkPool.size() - 1);
-            insertLinkIntoDatabase(connection, link, "DELETE FROM `links_to_be_processed` WHERE `link` = ?;");
+        String link;
+        while ((link = getAndDeleteLinkFromDatabase(connection)) != null) {
             if (isLinkProcessed(connection, link)) {
                 continue;
             }
@@ -41,8 +35,20 @@ public class Main {
                 Document doc = getAndParseHtml(link);
                 collectPageLink(connection, doc);
                 storeArticle(connection, doc);
-                insertLinkIntoDatabase(connection, link, "INSERT INTO `links_already_processed` (`link`) VALUES (?);");
+                updateLinkDatabase(connection, link, "INSERT INTO `links_already_processed` (`link`) VALUES (?);");
             }
+        }
+    }
+
+    private static String getAndDeleteLinkFromDatabase(Connection connection) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT `link` FROM `links_to_be_processed` LIMIT 1;")) {
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                String link = resultSet.getString(1);
+                updateLinkDatabase(connection, link, "DELETE FROM `links_to_be_processed` WHERE `link` = ?;");
+                return link;
+            }
+            return null;
         }
     }
 
@@ -50,19 +56,21 @@ public class Main {
         List<Element> aTags = doc.select("a");
         for (Element aTag : aTags) {
             String href = aTag.attr("href");
-            linkPool.add(href);
             // TODO: 使用事务批量提交
-            insertLinkIntoDatabase(connection, href, "INSERT INTO `links_to_be_processed` (`link`) VALUES (?);");
+            updateLinkDatabase(connection, href, "INSERT INTO `links_to_be_processed` (`link`) VALUES (?);");
         }
     }
 
-    private static void storeArticle(Connection connection, Document doc) {
+    private static void storeArticle(Connection connection, Document doc) throws SQLException {
         List<Element> articleTags = doc.select("article");
         if (!articleTags.isEmpty()) {
-            articleTags.forEach(articleTag -> {
-                String title = articleTag.child(0).text();
+            for (Element articleTag : articleTags) {
+                String title = articleTag.select(".art_tit_h1").text();
+                List<Element> artPs = articleTag.select(".art_p");
+                String content = artPs.stream().map(Element::text).collect(Collectors.joining("\n"));
+                insertNewsIntoDataBase(connection, title, content);
                 System.out.println(title);
-            });
+            }
         }
     }
 
@@ -99,20 +107,17 @@ public class Main {
         return link.contains("news.sina.cn");
     }
 
-    private static List<String> loadLinksFromDatabase(Connection connection, String sql) throws SQLException {
+    private static void updateLinkDatabase(Connection connection, String link, String sql) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            List<String> result = new ArrayList<>();
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                result.add(resultSet.getString(1));
-            }
-            return result;
+            statement.setString(1, link);
+            statement.executeUpdate();
         }
     }
 
-    private static void insertLinkIntoDatabase(Connection connection, String link, String sql) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, link);
+    private static void insertNewsIntoDataBase(Connection connection, String title, String content) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `news` (`title`,`content`) VALUES (?,?)")) {
+            statement.setString(1, title);
+            statement.setString(2, content);
             statement.executeUpdate();
         }
     }
