@@ -56,6 +56,12 @@ public class Main {
         List<Element> aTags = doc.select("a");
         for (Element aTag : aTags) {
             String href = aTag.attr("href");
+            if (href.toLowerCase().startsWith("javascript")) {
+                continue;
+            }
+            if (href.startsWith("//")) {
+                href = "https:" + href;
+            }
             // TODO: 使用事务批量提交
             updateLinkDatabase(connection, href, "INSERT INTO `links_to_be_processed` (`link`) VALUES (?);");
         }
@@ -75,9 +81,6 @@ public class Main {
     }
 
     private static Document getAndParseHtml(String link) throws IOException {
-        if (link.startsWith("//")) {
-            link = "https:" + link;
-        }
         HttpGet httpGet = new HttpGet(link);
         httpGet.addHeader("User-Agent", USER_AGENT);
         try (
