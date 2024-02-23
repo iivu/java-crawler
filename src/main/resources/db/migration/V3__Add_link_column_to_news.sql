@@ -1,0 +1,2 @@
+ALTER TABLE `news`
+ADD COLUMN `link` VARCHAR(200);

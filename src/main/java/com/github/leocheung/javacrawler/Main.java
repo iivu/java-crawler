@@ -35,7 +35,7 @@ public class Main {
                 System.out.println("processing link: " + link);
                 Document doc = getAndParseHtml(link);
                 collectPageLink(connection, doc);
-                storeArticle(connection, doc);
+                storeArticle(connection, doc, link);
                 updateLinkDatabase(connection, link, "INSERT INTO `links_already_processed` (`link`) VALUES (?);");
             }
         }
@@ -59,8 +59,8 @@ public class Main {
             String href = aTag.attr("href").trim();
             if (
                     href.isEmpty()
-                    || href.toLowerCase().startsWith("javascript")
-                    || href.startsWith("#")
+                            || href.toLowerCase().startsWith("javascript")
+                            || href.startsWith("#")
             ) {
                 continue;
             }
@@ -72,14 +72,14 @@ public class Main {
         }
     }
 
-    private static void storeArticle(Connection connection, Document doc) throws SQLException {
+    private static void storeArticle(Connection connection, Document doc, String link) throws SQLException {
         List<Element> articleTags = doc.select("article");
         if (!articleTags.isEmpty()) {
             for (Element articleTag : articleTags) {
                 String title = articleTag.select(".art_tit_h1").text();
                 List<Element> artPs = articleTag.select(".art_p");
                 String content = artPs.stream().map(Element::text).collect(Collectors.joining("\n"));
-                insertNewsIntoDataBase(connection, title, content);
+                insertNewsIntoDataBase(connection, title, content, link);
                 System.out.println(title);
             }
         }
@@ -122,10 +122,11 @@ public class Main {
         }
     }
 
-    private static void insertNewsIntoDataBase(Connection connection, String title, String content) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `news` (`title`,`content`) VALUES (?,?)")) {
+    private static void insertNewsIntoDataBase(Connection connection, String title, String content, String link) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `news` (`title`,`content`,`link`) VALUES (?,?,?)")) {
             statement.setString(1, title);
             statement.setString(2, content);
+            statement.setString(3, link);
             statement.executeUpdate();
         }
     }
