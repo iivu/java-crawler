@@ -32,6 +32,7 @@ public class Main {
                 continue;
             }
             if (isInterestingLink(link)) {
+                System.out.println("processing link: " + link);
                 Document doc = getAndParseHtml(link);
                 collectPageLink(connection, doc);
                 storeArticle(connection, doc);
@@ -55,8 +56,12 @@ public class Main {
     private static void collectPageLink(Connection connection, Document doc) throws SQLException {
         List<Element> aTags = doc.select("a");
         for (Element aTag : aTags) {
-            String href = aTag.attr("href");
-            if (href.toLowerCase().startsWith("javascript")) {
+            String href = aTag.attr("href").trim();
+            if (
+                    href.isEmpty()
+                    || href.toLowerCase().startsWith("javascript")
+                    || href.startsWith("#")
+            ) {
                 continue;
             }
             if (href.startsWith("//")) {
