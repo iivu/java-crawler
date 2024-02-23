@@ -22,6 +22,16 @@ public class JDBCCrawlerDAO implements CrawlerDAO {
         }
     }
 
+    @Override
+    public void insertLinkToAlreadyProcessed(String link) throws SQLException {
+        updateLinkDatabase(link, "INSERT INTO `links_already_processed` (`link`) VALUES (?);");
+    }
+
+    @Override
+    public void insertLinkToBeProcessed(String link) throws SQLException {
+        updateLinkDatabase(link, "INSERT INTO `links_to_be_processed` (`link`) VALUES (?);");
+    }
+
     public void updateLinkDatabase(String link, String sql) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, link);

@@ -8,4 +8,8 @@ public interface CrawlerDAO {
     void insertNewsIntoDataBase(String title, String content, String link) throws SQLException;
     boolean isLinkProcessed(String link) throws SQLException;
     void connect() throws SQLException;
+
+    void insertLinkToAlreadyProcessed(String link) throws SQLException;
+
+    void insertLinkToBeProcessed(String link) throws SQLException;
 }

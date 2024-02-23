@@ -36,7 +36,7 @@ public class Crawler {
                 Document doc = getAndParseHtml(link);
                 collectPageLink(doc);
                 storeArticle(doc, link);
-                DAO.updateLinkDatabase(link, "INSERT INTO `links_already_processed` (`link`) VALUES (?);");
+                DAO.insertLinkToAlreadyProcessed(link);
             }
         }
     }
@@ -56,7 +56,7 @@ public class Crawler {
                 href = "https:" + href;
             }
             // TODO: 使用事务批量提交
-            DAO.updateLinkDatabase(href, "INSERT INTO `links_to_be_processed` (`link`) VALUES (?);");
+            DAO.insertLinkToBeProcessed(href);
         }
     }
 
