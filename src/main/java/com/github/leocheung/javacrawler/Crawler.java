@@ -21,10 +21,11 @@ public class Crawler {
     private final CrawlerDAO DAO;
 
     public Crawler() {
-        this.DAO = new JDBCCrawlerDAO();
+//        this.DAO = new JDBCCrawlerDAO();
+        this.DAO = new MybatisCrawlerDAO();
     }
 
-    public void run() throws IOException, SQLException {
+    public void run() throws Exception {
         String link;
         this.DAO.connect();
         while ((link = DAO.getAndDeleteLinkFromDatabase()) != null) {

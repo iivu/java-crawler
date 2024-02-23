@@ -10,6 +10,7 @@ public class JDBCCrawlerDAO implements CrawlerDAO {
     private static final String DATABASE_PASSWORD = "root";
     private Connection connection;
 
+    @Override
     public String getAndDeleteLinkFromDatabase() throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("SELECT `link` FROM `links_to_be_processed` LIMIT 1;")) {
             ResultSet resultSet = statement.executeQuery();
@@ -31,7 +32,6 @@ public class JDBCCrawlerDAO implements CrawlerDAO {
     public void insertLinkToBeProcessed(String link) throws SQLException {
         updateLinkDatabase(link, "INSERT INTO `links_to_be_processed` (`link`) VALUES (?);");
     }
-
     public void updateLinkDatabase(String link, String sql) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, link);
@@ -39,6 +39,7 @@ public class JDBCCrawlerDAO implements CrawlerDAO {
         }
     }
 
+    @Override
     public void insertNewsIntoDataBase(String title, String content, String link) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `news` (`title`,`content`,`link`) VALUES (?,?,?)")) {
             statement.setString(1, title);
@@ -48,6 +49,7 @@ public class JDBCCrawlerDAO implements CrawlerDAO {
         }
     }
 
+    @Override
     public boolean isLinkProcessed(String link) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM `links_already_processed` WHERE `link` = ?;")) {
             statement.setString(1, link);
@@ -57,6 +59,7 @@ public class JDBCCrawlerDAO implements CrawlerDAO {
     }
 
     @SuppressFBWarnings("DMI_CONSTANT_DB_PASSWORD")
+    @Override
     public void connect() throws SQLException {
         if (connection != null) {
             return;
