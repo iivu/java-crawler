@@ -29,7 +29,7 @@ public class MybatisCrawlerDAO implements CrawlerDAO {
     }
 
     @Override
-    public void insertNewsIntoDataBase(String title, String content, String link) {
+    public void insertNews(String title, String content, String link) {
         try (SqlSession session = sqlSessionFactory.openSession(true)) {
             session.insert("com.github.leocheung.javacrawler.mapper.insertNews", new News(title, content, link));
         }

@@ -40,7 +40,7 @@ public class JDBCCrawlerDAO implements CrawlerDAO {
     }
 
     @Override
-    public void insertNewsIntoDataBase(String title, String content, String link) throws SQLException {
+    public void insertNews(String title, String content, String link) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `news` (`title`,`content`,`link`) VALUES (?,?,?)")) {
             statement.setString(1, title);
             statement.setString(2, content);

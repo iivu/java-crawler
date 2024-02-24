@@ -68,7 +68,7 @@ public class Crawler {
                 String title = articleTag.select(".art_tit_h1").text();
                 List<Element> artPs = articleTag.select(".art_p");
                 String content = artPs.stream().map(Element::text).collect(Collectors.joining("\n"));
-                DAO.insertNewsIntoDataBase(title, content, link);
+                DAO.insertNews(title, content, link);
                 System.out.println(title);
             }
         }
