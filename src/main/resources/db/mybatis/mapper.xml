@@ -22,7 +22,7 @@
         (`link`) VALUES (#{link})
     </insert>
     <select id="countSpecialLinkInAlreadyProcessedLink" parameterType="String" resultType="int">
-        SELECT count(`link`) FROM `links_already_processed` WHERE `link` = #{link}
+        SELECT COUNT(`link`) FROM `links_already_processed` WHERE `link` = #{link}
     </select>
     <delete id="deleteToBeProcessedLink" parameterType="String">
         DELETE FROM `links_to_be_processed` WHERE `link` = #{link}

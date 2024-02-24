@@ -44,12 +44,6 @@ public class MybatisCrawlerDAO implements CrawlerDAO {
     }
 
     @Override
-    public void connect() throws IOException {
-        InputStream inputStream = Resources.getResourceAsStream(MYBATIS_CONFIG);
-        sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
-    }
-
-    @Override
     public void insertLinkToAlreadyProcessed(String link) {
         Map<String, String> params = new HashMap<>();
         params.put("tableName", "links_already_processed");
@@ -63,6 +57,12 @@ public class MybatisCrawlerDAO implements CrawlerDAO {
         params.put("tableName", "links_to_be_processed");
         params.put("link", link);
         insertLink(params);
+    }
+
+    @Override
+    public void connect() throws IOException {
+        InputStream inputStream = Resources.getResourceAsStream(MYBATIS_CONFIG);
+        sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
     }
 
     private void insertLink(Map<String, String> params) {
