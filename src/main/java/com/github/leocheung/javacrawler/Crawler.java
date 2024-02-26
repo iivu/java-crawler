@@ -15,30 +15,33 @@ import java.sql.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Crawler {
+public class Crawler implements Runnable {
     private static final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0";
     private static final String HOME_PAGE_LINK = "https://sina.cn";
     private final CrawlerDAO DAO;
 
-    public Crawler() {
-//        this.DAO = new JDBCCrawlerDAO();
-        this.DAO = new MybatisCrawlerDAO();
+    public Crawler(CrawlerDAO dao) {
+        this.DAO = dao;
     }
 
-    public void run() throws Exception {
+    public void run() {
         String link;
-        this.DAO.connect();
-        while ((link = DAO.getAndDeleteLinkFromDatabase()) != null) {
-            if (DAO.isLinkProcessed(link)) {
-                continue;
+        try {
+            this.DAO.connect();
+            while ((link = DAO.getAndDeleteLinkFromDatabase()) != null) {
+                if (DAO.isLinkProcessed(link)) {
+                    continue;
+                }
+                if (isInterestingLink(link)) {
+                    System.out.println("processing link: " + link);
+                    Document doc = getAndParseHtml(link);
+                    collectPageLink(doc);
+                    storeArticle(doc, link);
+                    DAO.insertLinkToAlreadyProcessed(link);
+                }
             }
-            if (isInterestingLink(link)) {
-                System.out.println("processing link: " + link);
-                Document doc = getAndParseHtml(link);
-                collectPageLink(doc);
-                storeArticle(doc, link);
-                DAO.insertLinkToAlreadyProcessed(link);
-            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
