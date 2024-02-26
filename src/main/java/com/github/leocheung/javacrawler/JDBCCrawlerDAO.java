@@ -11,7 +11,7 @@ public class JDBCCrawlerDAO implements CrawlerDAO {
     private Connection connection;
 
     @Override
-    public String getAndDeleteLinkFromDatabase() throws SQLException {
+    public synchronized String getAndDeleteLinkFromDatabase() throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("SELECT `link` FROM `links_to_be_processed` LIMIT 1;")) {
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
