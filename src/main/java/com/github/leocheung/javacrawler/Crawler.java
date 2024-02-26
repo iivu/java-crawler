@@ -1,5 +1,6 @@
 package com.github.leocheung.javacrawler;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -20,6 +21,7 @@ public class Crawler implements Runnable {
     private static final String HOME_PAGE_LINK = "https://sina.cn";
     private final CrawlerDAO DAO;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public Crawler(CrawlerDAO dao) {
         this.DAO = dao;
     }
