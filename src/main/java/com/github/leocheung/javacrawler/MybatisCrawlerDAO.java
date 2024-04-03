@@ -17,7 +17,7 @@ public class MybatisCrawlerDAO implements CrawlerDAO {
     private SqlSessionFactory sqlSessionFactory;
 
     @Override
-    public String getAndDeleteLinkFromDatabase() {
+    public synchronized String getAndDeleteLinkFromDatabase() {
         try (SqlSession session = sqlSessionFactory.openSession(true)) {
             String link = session.selectOne("com.github.leocheung.javacrawler.mapper.selectToBeProcessedLink");
             if (link != null) {
